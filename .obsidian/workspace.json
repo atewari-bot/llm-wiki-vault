@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "wiki/concepts/docker-exec-interactive.md",
+                "file": "raw/todos/2026-04-19.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "docker-exec-interactive"
+              "title": "2026-04-19"
             }
           }
         ]
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "wiki/concepts/docker-exec-interactive.md",
+                "file": "raw/todos/2026-04-19.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for docker-exec-interactive"
+              "title": "Backlinks for 2026-04-19"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "wiki/concepts/docker-exec-interactive.md",
+                "file": "raw/todos/2026-04-19.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from docker-exec-interactive"
+              "title": "Outgoing links from 2026-04-19"
             }
           },
           {
@@ -156,13 +156,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "wiki/concepts/docker-exec-interactive.md",
+                "file": "raw/todos/2026-04-19.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of docker-exec-interactive"
+              "title": "Outline of 2026-04-19"
             }
           }
         ]
@@ -185,10 +185,12 @@
   },
   "active": "4e96c948428e2836",
   "lastOpenFiles": [
+    "wiki/concepts/docker-exec-interactive.md",
+    "raw/todos/2026-04-19.md",
+    "raw/todos",
     "BUILD_PROMPT.md",
     "wiki/concepts/docker-container-lifecycle.md",
     "raw/notes/docker/Manipulating containers in Docker Client.md",
-    "wiki/concepts/docker-exec-interactive.md",
     "raw/notes/Manipulating",
     "raw/notes/your-note-name.md",
     "LICENSE",

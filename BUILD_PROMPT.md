@@ -30,6 +30,7 @@ llm-wiki-vault/
 │   ├── inbox/
 │   ├── articles/YYYY-MM/
 │   ├── notes/YYYY-MM/
+│   ├── todos/YYYY-MM-DD.md          ← manual daily task input (one file per day)
 │   └── slack/YYYY-MM-DD/<channel>/
 │       ├── digest.md
 │       └── data.json
@@ -131,7 +132,13 @@ build graph                → tell user: bash tools/build-graph.sh
 refresh slack              → Slack MCP → raw/slack/YYYY-MM-DD/<ch>/digest.md + data.json
 ingest slack               → alias for refresh slack
 list/add/remove/search slack channel <x> → python tools/slack_channels.py <cmd>
-daily                      → Slack → Calendar → briefing → reports/daily/
+daily                      → Slack → Calendar → raw/todos/ → briefing → reports/daily/
+todo <text>                → append task to raw/todos/YYYY-MM-DD.md (### Inbox)
+add todo <text>            → same as todo <text>
+show todos                 → display today's raw/todos/YYYY-MM-DD.md with counts
+complete todo <item>       → mark matching task [x] in today's file
+clear todos                → mark all unchecked [x] in today's file
+plan day                   → interactive task entry then full briefing
 eod                        → end-of-day capture → raw/notes/YYYY-MM/YYYY-MM-DD-eod.md
 weekly                     → review → reports/weekly/YYYY-WNN.md
 discover                   → connections → reports/discoveries/YYYY-MM-DD.md
@@ -363,12 +370,18 @@ fetch_calendar(date_str) → Google Calendar MCP
 count_unprocessed(folder) → .md files without "processed:"
 read_gaps(path) → gap names from graph-report.md
 read_carry_forward(daily_dir, today_str) → unchecked todos last 7 days, deduplicated
+read_manual_todos(vault, today_str) → unchecked items from raw/todos/YYYY-MM-DD.md
+  Strips inline HTML comments. Returns [{text, source:"manual"}]
 enrich_events(events, wiki_dir) → add wiki_pages[] per event
 wiki_pulse(wiki_dir, today) → pages updated this week
 fetch_slack_todos(vault, date_str) → read raw/slack/ JSON sidecars
-build_todos(..., slack_todos=None) → scored/ranked must/should/if-time list
+build_todos(..., slack_todos=None, manual_todos=None) → scored/ranked list
+  Manual todos: score=3, tier=must, source=manual (inserted first)
   Scores: meeting+3, carried3+d+2, Slack≥3+2, Slack2+1, gap+1, inbox>5+1
-render_briefing(...) → markdown with ## From Slack (omit if empty)
+render_briefing(..., manual_todos=None) → markdown
+  ## Todo block: ### Planned (manual, `Manual` badge) then Must/Should/If-time
+  Focus line includes "N planned tasks for today" if manual todos present
+  ## From Slack omitted if empty
 Save to reports/daily/YYYY-MM-DD.md
 
 ### tools/weekly.py
@@ -509,7 +522,8 @@ inline injection format, <!-- llm-enriched --> marker, --force flag.
 
 ### daily.md
 
-Sources: Slack MCP first → Calendar MCP → inbox → gaps → carry-forward
+Sources: Slack MCP first → Calendar MCP → raw/todos/ → inbox → gaps → carry-forward
+Manual todos (raw/todos/YYYY-MM-DD.md) → ## Planned section, score 3, `Manual` badge.
 Scoring table. Output with ## From Slack (omit if empty).
 bash tools/run-daily.sh [--no-slack] [--no-calendar]
 

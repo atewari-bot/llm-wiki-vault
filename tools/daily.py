@@ -58,13 +58,18 @@ def main():
     # 5. Carry-forward
     carried = read_carry_forward(vault / "reports" / "daily", today_str)
 
-    # 6. Wiki pulse
+    # 6. Manual todos
+    manual_todos = read_manual_todos(vault, today_str)
+    if manual_todos:
+        print(f"   Manual todos: {len(manual_todos)} planned tasks")
+
+    # 7. Wiki pulse
     pulse = wiki_pulse(vault / "wiki", today)
 
-    # 7. Enrich events
+    # 8. Enrich events
     enriched_events = enrich_events(events, vault / "wiki")
 
-    # 8. Build todos
+    # 9. Build todos
     todos = build_todos(
         events=enriched_events,
         inbox_count=inbox_count,
@@ -72,22 +77,25 @@ def main():
         gaps=gaps,
         carried=carried,
         slack_todos=slack_todos,
+        manual_todos=manual_todos,
     )
 
-    # 9. Write
+    # 10. Write
     briefing = render_briefing(today, weekday, enriched_events, todos, carried,
-                               pulse, gaps, slack_todos)
+                               pulse, gaps, slack_todos, manual_todos=manual_todos)
 
     out_path = vault / "reports" / "daily" / f"{today_str}.md"
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(briefing, encoding="utf-8")
 
-    must   = sum(1 for t in todos if t["tier"] == "must")
+    must   = sum(1 for t in todos if t["tier"] == "must" and t.get("source") != "manual")
     should = sum(1 for t in todos if t["tier"] == "should")
     ift    = sum(1 for t in todos if t["tier"] == "if-time")
 
     print(f"\nDaily briefing -> reports/daily/{today_str}.md")
     print(f"   Meetings: {len(events)}  Slack items: {len(slack_todos)}")
+    if manual_todos:
+        print(f"   Planned: {len(manual_todos)} manual tasks")
     print(f"   Todos: {must} must  {should} should  {ift} if-time")
     print(f"   Carry-forward: {len(carried)}")
 
@@ -220,8 +228,26 @@ def wiki_pulse(wiki_dir: Path, today: date) -> list:
     return recent[:7]
 
 
-def build_todos(events, inbox_count, notes_count, gaps, carried, slack_todos=None) -> list:
+def read_manual_todos(vault: Path, today_str: str) -> list:
+    todo_path = vault / "raw" / "todos" / f"{today_str}.md"
+    if not todo_path.exists():
+        return []
     todos = []
+    for line in todo_path.read_text(errors="ignore").splitlines():
+        m = re.match(r"^-\s\[\s\]\s+(.+)$", line)
+        if m:
+            text = re.sub(r"\s*<!--.*?-->", "", m.group(1)).strip()
+            if text:
+                todos.append({"text": text, "source": "manual"})
+    return todos
+
+
+def build_todos(events, inbox_count, notes_count, gaps, carried, slack_todos=None, manual_todos=None) -> list:
+    todos = []
+
+    for item in (manual_todos or []):
+        todos.append({"text": item["text"], "rationale": "planned",
+                      "score": 3, "tier": "must", "source": "manual"})
 
     if inbox_count > 0:
         todos.append({"text": f"Process inbox ({inbox_count} unprocessed files)",
@@ -263,13 +289,13 @@ def build_todos(events, inbox_count, notes_count, gaps, carried, slack_todos=Non
     return todos
 
 
-def render_briefing(today, weekday, events, todos, carried, pulse, gaps, slack_todos=None) -> str:
+def render_briefing(today, weekday, events, todos, carried, pulse, gaps, slack_todos=None, manual_todos=None) -> str:
     date_str  = today.isoformat()
     month_day = today.strftime("%B %d")
-    must_t   = [t for t in todos if t["tier"] == "must"]
+    manual_t = [t for t in todos if t.get("source") == "manual"]
+    must_t   = [t for t in todos if t["tier"] == "must" and t.get("source") != "manual"]
     should_t = [t for t in todos if t["tier"] == "should"]
     ift_t    = [t for t in todos if t["tier"] == "if-time"]
-    slack_t  = [t for t in todos if t.get("source") == "slack"]
 
     lines = [
         "---",
@@ -283,10 +309,13 @@ def render_briefing(today, weekday, events, todos, carried, pulse, gaps, slack_t
     ]
 
     parts = []
-    if events:     parts.append(f"{len(events)} meeting{'s' if len(events)>1 else ''}")
+    if manual_todos:
+        n = len(manual_todos)
+        parts.append(f"{n} planned task{'s' if n > 1 else ''} for today")
+    if events:      parts.append(f"{len(events)} meeting{'s' if len(events)>1 else ''}")
     if slack_todos: parts.append(f"{len(slack_todos)} Slack item{'s' if len(slack_todos)>1 else ''}")
-    if must_t:     parts.append(f"{len(must_t)} must-do{'s' if len(must_t)>1 else ''}")
-    if carried:    parts.append(f"{len(carried)} carried")
+    if must_t:      parts.append(f"{len(must_t)} must-do{'s' if len(must_t)>1 else ''}")
+    if carried:     parts.append(f"{len(carried)} carried")
     lines += [f"> {'  ·  '.join(parts) if parts else 'Clear day'}", ""]
 
     if events:
@@ -301,6 +330,11 @@ def render_briefing(today, weekday, events, todos, carried, pulse, gaps, slack_t
         lines.append("")
 
     lines += ["## Todo", ""]
+    if manual_t:
+        lines += ["### Planned", ""]
+        for t in manual_t:
+            lines.append(f"- [ ] {t['text']} `Manual`")
+        lines.append("")
     if must_t:
         lines += ["### Must do", ""]
         for t in must_t:

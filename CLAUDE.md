@@ -49,6 +49,7 @@ bash tools/run-slack-ingest.sh [--hours N]
 
 ```
 raw/     → source material (input only, never modify existing files)
+raw/todos/ → daily task lists (inline, written by Claude each day)
 wiki/    → compiled knowledge (you write here)
 reports/ → human-facing outputs you generate on request
 tools/   → automation (do not modify)
@@ -56,12 +57,13 @@ tools/   → automation (do not modify)
 
 ## Layer Rules
 
-| Layer    | Purpose                                     | Who writes          |
-|----------|---------------------------------------------|---------------------|
-| raw/     | Source input — untouched after initial save | You (drop files in) |
-| wiki/    | Compiled knowledge — synthesized, linked    | Claude              |
-| reports/ | Human-facing documents on request           | Claude              |
-| tools/   | Automation scripts and build artifacts      | Scripts only        |
+| Layer       | Purpose                                     | Who writes          |
+|-------------|---------------------------------------------|---------------------|
+| raw/        | Source input — untouched after initial save | You (drop files in) |
+| raw/todos/  | Daily inline task lists                     | Claude              |
+| wiki/       | Compiled knowledge — synthesized, linked    | Claude              |
+| reports/    | Human-facing documents on request           | Claude              |
+| tools/      | Automation scripts and build artifacts      | Scripts only        |
 
 ---
 
@@ -108,7 +110,13 @@ Leave blank for corporate workspaces with app install restrictions.
 | add slack channel <x>      | Add channel by ID or name to SLACK_CHANNEL_IDS in tools/.env       |
 | remove slack channel <x>   | Remove channel from SLACK_CHANNEL_IDS in tools/.env                |
 | search slack channels <q>  | Search workspace channels (requires bot token)                     |
-| daily                      | Refresh Slack → generate daily briefing → reports/daily/YYYY-MM-DD.md |
+| daily                      | Refresh Slack → generate daily briefing → reports/daily/YYYY-MM-DD.md + raw/todos/YYYY-MM-DD.md |
+| todo <text>                | Append task to raw/todos/YYYY-MM-DD.md (under ### Inbox)           |
+| add todo <text>            | Same as todo <text>                                                |
+| show todos                 | Display today's raw/todos/YYYY-MM-DD.md with counts               |
+| complete todo <item>       | Mark matching task [x] in raw/todos/YYYY-MM-DD.md                 |
+| clear todos                | Mark all unchecked tasks [x] in today's file                      |
+| plan day                   | Interactive — add multiple tasks, then generate full briefing      |
 | eod                        | End-of-day capture → raw/notes/YYYY-MM/YYYY-MM-DD-eod.md          |
 | weekly                     | Weekly review with Slack stats → reports/weekly/YYYY-WNN.md        |
 | discover                   | Find non-obvious connections → reports/discoveries/YYYY-MM-DD.md  |
@@ -250,21 +258,50 @@ No bot token mode:
 
 ---
 
+## Manual Todo Input — full steps
+
+`raw/todos/YYYY-MM-DD.md` is your daily planning input file. Drop tasks in before running `daily` and they appear at the top of the briefing under `## Planned` with a `Manual` badge — before auto-generated must/should/if-time items. Checked items `[x]` are ignored; only unchecked `[ ]` items are pulled.
+
+**`todo <text>` / `add todo <text>`:**
+1. Open (or create) `raw/todos/YYYY-MM-DD.md` using today's date
+2. Append `- [ ] <text>` under the `### Inbox` section
+3. Confirm: `Added: <text>`
+
+**`show todos`:**
+1. Read `raw/todos/YYYY-MM-DD.md`
+2. Print the file; show counts: N unchecked / N checked
+3. If file missing, show: "No todo file for today — say `todo <text>` to start one"
+
+**`complete todo <item>`:**
+1. Find first unchecked `- [ ]` line matching `<item>` (fuzzy/partial)
+2. Change `[ ]` to `[x]`
+3. Confirm: `Done: <text>`
+
+**`clear todos`:**
+1. Change all `- [ ]` to `- [x]` in today's file
+2. Confirm: `Cleared N tasks`
+
+**`plan day`:**
+1. Prompt: "What's on your plate today? Drop tasks one per line, blank line when done."
+2. Append each as `- [ ] <text>` under `### Inbox`
+3. Run the full `daily` briefing
+
 ## Daily Briefing — full steps
 
-Sources: Slack MCP + Google Calendar MCP + raw/inbox/ state + graph-report gaps + yesterday's daily report (carry-forward)
+Sources: Slack MCP + Google Calendar MCP + raw/todos/ + raw/inbox/ state + graph-report gaps + yesterday's daily report (carry-forward)
 
 1. Refresh Slack first — run the Refresh Slack steps above to populate today's JSON sidecars
 2. Fetch today's calendar events via Google Calendar MCP
 3. For each event: search wiki/ for relevant pages (keyword match on title). List up to 3 relevant wiki pages per meeting as prep material
 4. Read today's Slack data from raw/slack/YYYY-MM-DD/*/data.json — collect all action_items
-5. Count unprocessed files recursively in raw/inbox/ and raw/notes/
-6. Read top 3 gaps from wiki/meta/graph-report.md
-7. Read yesterday's reports/daily/YYYY-MM-DD.md. Extract all unchecked "- [ ]" items as carry-forward. Label each with days carried: (carried N days). Flag items carried 5+ days: (carried N days — consider dropping)
-8. Score todos (see table below)
-9. Rank into: Must do / Should do / If time
-10. Save to reports/daily/YYYY-MM-DD.md
-11. Run: `bash tools/run-daily.sh` for script mode (reads cached sidecars if no bot token)
+5. Read manual todos from raw/todos/YYYY-MM-DD.md — collect all unchecked `- [ ]` items (score 3, must tier)
+6. Count unprocessed files recursively in raw/inbox/ and raw/notes/
+7. Read top 3 gaps from wiki/meta/graph-report.md
+8. Read yesterday's reports/daily/YYYY-MM-DD.md. Extract all unchecked "- [ ]" items as carry-forward. Label each with days carried: (carried N days). Flag items carried 5+ days: (carried N days — consider dropping)
+9. Score todos (see table below)
+10. Rank into: Planned (manual, always first) / Must do / Should do / If time
+11. Save to reports/daily/YYYY-MM-DD.md
+12. Run: `bash tools/run-daily.sh` for script mode (reads cached sidecars if no bot token)
 
 Todo scoring:
 
@@ -289,6 +326,8 @@ type: daily-briefing
 ## Calendar
 - HH:MM — Event (duration) → Wiki: [[Page]], [[Page]] → Prep: [suggestion]
 ## Todo
+### Planned
+- [ ] [manual item] `Manual`
 ### Must do
 - [ ] [item] — *rationale*
 ### Should do
@@ -306,6 +345,39 @@ type: daily-briefing
 ```
 
 Omit "## From Slack" section if no Slack action items were found today.
+
+## Inline Todo File — raw/todos/YYYY-MM-DD.md
+
+Written automatically by `daily` and editable directly in Obsidian. Carry-forward pulls unchecked items from yesterday's file.
+
+```markdown
+---
+title: "Todos — YYYY-MM-DD"
+date: YYYY-MM-DD
+type: todo
+---
+# Todos — WEEKDAY MONTH DAY
+
+### Must do
+- [ ] [item] — *rationale*
+
+### Should do
+- [ ] [item]
+
+### If time
+- [ ] [item]
+
+### Carry-forward
+- [ ] [item] *(carried N days)*
+
+### Inbox
+<!-- ad-hoc items added via `add todo <item>` land here -->
+```
+
+**Todo trigger steps:**
+- `todo` → read raw/todos/YYYY-MM-DD.md and display; if missing, create empty scaffold above
+- `add todo <item>` → append `- [ ] <item>` under `### Inbox` in today's file; confirm added
+- `complete todo <item>` → find first unchecked line matching <item> (fuzzy), change `[ ]` to `[x]`; confirm
 
 ## EOD Capture — full steps
 
