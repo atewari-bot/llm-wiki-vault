@@ -486,3 +486,24 @@ Relationship types: relates_to, depends_on, contradicts, supports, part_of, lead
 - Leave broken wikilinks after an ingest
 - Answer from memory alone when question is about vault content
 - Use wikilinks in onepager or slides output
+
+---
+
+## Keeping BUILD_PROMPT.md Current
+
+Update BUILD_PROMPT.md after ANY of:
+- New skill, trigger, or feature added
+- Python tool or shell script created or significantly changed
+- Design decision changed (layer rules, routing, formats, thresholds)
+- Bug fix changes how a core operation works
+
+How to update:
+  1. Find the relevant SECTION in BUILD_PROMPT.md and edit it
+  2. Replace ALL real secrets/IDs with dummies:
+     - API keys → sk-ant-REPLACE_WITH_YOUR_KEY
+     - Slack tokens → xoxb-REPLACE_WITH_TOKEN
+     - Channel IDs → REPLACE_WITH_CHANNEL_ID
+     - User IDs → REPLACE_WITH_YOUR_ID
+  3. Confirm to user: BUILD_PROMPT.md updated — [what changed]
+
+Never put real credentials in BUILD_PROMPT.md.

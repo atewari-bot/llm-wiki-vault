@@ -185,6 +185,7 @@
   },
   "active": "4e96c948428e2836",
   "lastOpenFiles": [
+    "BUILD_PROMPT.md",
     "wiki/concepts/docker-container-lifecycle.md",
     "raw/notes/docker/Manipulating containers in Docker Client.md",
     "wiki/concepts/docker-exec-interactive.md",
