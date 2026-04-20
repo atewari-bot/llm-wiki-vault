@@ -112,3 +112,4 @@ Everything lives in this folder. To move to a new machine:
 1. Copy/clone the folder
 2. Run `bash tools/setup.sh`
 3. Edit `tools/.env` with your keys
+

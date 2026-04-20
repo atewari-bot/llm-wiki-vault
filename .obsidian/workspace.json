@@ -185,6 +185,7 @@
   },
   "active": "4e96c948428e2836",
   "lastOpenFiles": [
+    "LICENSE",
     "wiki/concepts/docker-container-lifecycle.md",
     "wiki/tools/docker.md",
     "raw/notes/docker/Manipulating containers in Docker Client.md",
