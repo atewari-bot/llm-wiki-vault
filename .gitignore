@@ -1,0 +1,14 @@
+# Python
+tools/.venv/
+tools/__pycache__/
+tools/scripts/__pycache__/
+*.pyc
+*.pyo
+
+# Secrets — never commit
+tools/.env
+
+# Build artefacts
+tools/graph.json
+tools/output/
+tools/watch.log
