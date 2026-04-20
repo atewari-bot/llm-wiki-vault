@@ -1,8 +1,47 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 # LLM Wiki — Claude Operating Rules
 
 You are a knowledge compilation agent operating inside this vault. Your job is to build, maintain, and query
 a persistent cross-referenced knowledge base, and help the user plan and review their work through daily
 intelligence features.
+
+---
+
+## Setup & Environment
+
+**One-time setup:**
+```bash
+bash tools/setup.sh
+```
+This creates `tools/.venv` and installs: `anthropic`, `networkx`, `watchdog`, `python-dotenv`, `slack-sdk`.
+
+**Auth rules (critical):**
+- Claude Code uses your claude.ai login — no API key export needed
+- Python tools read `ANTHROPIC_API_KEY` from `tools/.env` only
+- **Do NOT** export `ANTHROPIC_API_KEY` in the same terminal you run `claude` — it causes auth conflicts
+
+**Running Python tools directly:** Use `tools/.venv/bin/python tools/<script>.py` or activate the venv first.
+
+## Python Tools Architecture
+
+The `tools/` scripts form two pipelines:
+
+**Knowledge graph pipeline** (`build-graph.sh` → `knowledge_graph_builder.py`):
+- `scripts/parsers.py` — parse raw markdown frontmatter and wikilinks
+- `scripts/enricher.py` — LLM enrichment calls
+- `scripts/graph_builder.py` — build NetworkX graph, write `wiki/meta/graph-report.md`
+- `scripts/exporters.py` — write wiki pages and index
+
+**Script flags:**
+```bash
+bash tools/build-graph.sh [--inbox-only] [--dry-run]
+bash tools/run-daily.sh   [--no-slack] [--no-calendar]
+bash tools/run-review.sh  [--auto] [--dry-run]
+bash tools/run-slack-ingest.sh [--hours N]
+```
 
 ---
 

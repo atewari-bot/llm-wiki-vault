@@ -1,19 +1,36 @@
-<<<<<<< HEAD
-# Python
-tools/.venv/
-tools/__pycache__/
-tools/scripts/__pycache__/
-*.pyc
-*.pyo
+# =============================================================
+# Vault-specific
+# =============================================================
 
 # Secrets — never commit
 tools/.env
 
-# Build artefacts
-tools/graph.json
-tools/output/
-tools/watch.log
-=======
+# Python virtual environment (tools/.venv/)
+tools/.venv/
+
+# Obsidian app settings (local workspace state)
+.obsidian/
+
+# macOS metadata
+.DS_Store
+**/.DS_Store
+._*
+
+# Slack digests — may contain sensitive messages; remove this
+# line if you want to track Slack history in git
+raw/slack/
+
+# Script logs
+tools/logs/
+*.log
+
+# Claude Code local state
+.claude/settings.local.json
+
+# =============================================================
+# Python (auto-generated below)
+# =============================================================
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
@@ -221,4 +238,3 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
->>>>>>> b8cf51bf77fd342120c8d2a6c7c2cbcee2d7a476
