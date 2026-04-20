@@ -12,6 +12,7 @@ sources:
   - "[[Manipulating containers in Docker Client]]"
 related:
   - "[[wiki/concepts/docker-container-lifecycle]]"
+  - "[[wiki/concepts/docker-exec-interactive]]"
 confidence: medium
 ---
 
@@ -60,10 +61,29 @@ confidence: medium
 
 > [!note] Stopped containers are not deleted automatically — use `docker system prune` or `docker ps --all` to find and rerun them.
 
+### Executing Commands in Running Containers
+
+| Command | What it does |
+|---|---|
+| `docker exec -it [id] [cmd]` | Run a command inside an already-running container |
+| `docker exec -it [id] redis-cli` | Open Redis CLI inside a running Redis container |
+| `docker exec -it [id] sh` | Open an interactive shell inside a running container |
+| `docker run -it busybox sh` | Start a new container and immediately enter its shell |
+
+**Flags:**
+- `-i` — attach STDIN (allows keyboard input)
+- `-t` — allocate a pseudo-TTY (provides formatting/readline on STDOUT)
+
+> [!note] `exec -it` enters a **running** container. `run -it` creates and starts a **new** container. See [[wiki/concepts/docker-exec-interactive]] for a detailed comparison.
+
+Exit a shell session with `exit` or `Ctrl+D`.
+
 ## Relationships
 
 - relates_to: [[wiki/concepts/docker-container-lifecycle]]
+- relates_to: [[wiki/concepts/docker-exec-interactive]]
 
 ## See Also
 
 - [[wiki/concepts/docker-container-lifecycle]]
+- [[wiki/concepts/docker-exec-interactive]]

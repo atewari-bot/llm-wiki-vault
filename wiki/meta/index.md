@@ -12,18 +12,19 @@ updated: 2026-04-19
 
 | Cluster | MOC | Pages | Last updated |
 |---------|-----|-------|-------------|
-| DevOps / Containers | [[wiki/tools/docker]], [[wiki/concepts/docker-container-lifecycle]] | 2 | 2026-04-19 |
+| DevOps / Containers | [[wiki/tools/docker]], [[wiki/concepts/docker-container-lifecycle]], [[wiki/concepts/docker-exec-interactive]] | 3 | 2026-04-19 |
 
 ## By type
 
 | Type | Count |
 |------|-------|
-| Concepts | 1 |
+| Concepts | 2 |
 | People | 0 |
 | Tools | 1 |
 
 ## Recently updated
 
+- [[wiki/concepts/docker-exec-interactive]] — 2026-04-19
 - [[wiki/tools/docker]] — 2026-04-19
 - [[wiki/concepts/docker-container-lifecycle]] — 2026-04-19
 

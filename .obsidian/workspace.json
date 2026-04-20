@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "raw/notes/docker/Manipulating containers in Docker Client.md",
+                "file": "wiki/concepts/docker-exec-interactive.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Manipulating containers in Docker Client"
+              "title": "docker-exec-interactive"
             }
           }
         ]
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "raw/notes/docker/Manipulating containers in Docker Client.md",
+                "file": "wiki/concepts/docker-exec-interactive.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for Manipulating containers in Docker Client"
+              "title": "Backlinks for docker-exec-interactive"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "raw/notes/docker/Manipulating containers in Docker Client.md",
+                "file": "wiki/concepts/docker-exec-interactive.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from Manipulating containers in Docker Client"
+              "title": "Outgoing links from docker-exec-interactive"
             }
           },
           {
@@ -156,13 +156,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "raw/notes/docker/Manipulating containers in Docker Client.md",
+                "file": "wiki/concepts/docker-exec-interactive.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of Manipulating containers in Docker Client"
+              "title": "Outline of docker-exec-interactive"
             }
           }
         ]
@@ -185,10 +185,13 @@
   },
   "active": "4e96c948428e2836",
   "lastOpenFiles": [
-    "LICENSE",
     "wiki/concepts/docker-container-lifecycle.md",
-    "wiki/tools/docker.md",
     "raw/notes/docker/Manipulating containers in Docker Client.md",
+    "wiki/concepts/docker-exec-interactive.md",
+    "raw/notes/Manipulating",
+    "raw/notes/your-note-name.md",
+    "LICENSE",
+    "wiki/tools/docker.md",
     "raw/notes/docker"
   ]
 }
