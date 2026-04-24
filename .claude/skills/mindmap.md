@@ -20,7 +20,7 @@ Saves to `reports/mindmap-<topic>.md`.
 
 ### 1. Find relevant wiki pages
 
-Search wiki/concepts/, wiki/people/, wiki/tools/ for pages related to the topic:
+Search wiki/concepts/, wiki/tools/ for pages related to the topic:
 - Direct name match
 - Tag match
 - Pages that wikilink to or from the closest matching page

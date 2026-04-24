@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -e
+SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
+VAULT="$(cd "$SCRIPT_DIR/.." && pwd)"
+TOOLS="$VAULT/.tools"
+VENV="$TOOLS/.venv"
+echo "======================================"
+echo " LLM Wiki Vault — Setup"
+echo "======================================"
+echo "Vault: $VAULT"
+echo ""
+PYTHON=$(command -v python3 || command -v python || echo "")
+if [ -z "$PYTHON" ]; then echo "ERR Python not found."; exit 1; fi
+echo "OK Python $($PYTHON -c 'import sys; print(f\"{sys.version_info.major}.{sys.version_info.minor}\")')"
+echo "Creating virtual environment at $VENV..."
+"$PYTHON" -m venv "$VENV"
+"$VENV/bin/pip" install --quiet --upgrade pip
+echo "Installing dependencies..."
+"$VENV/bin/pip" install --quiet -r "$TOOLS/requirements.txt"
+echo "OK Dependencies installed"
+echo ""
+echo "======================================"
+echo " Setup complete! Next steps:"
+echo "======================================"
+echo "  1. Edit .tools/.env with your API keys"
+echo "  2. bash .tools/run-gcal-auth.sh   # enable Google Calendar"
+echo "  3. bash .tools/schedule.sh install   # schedule daily at 8am"
+echo "  4. bash .tools/schedule-discover.sh install  # 6am"
+echo "  5. bash .tools/schedule-mindmap.sh install   # 7am"
+echo "  6. bash .tools/schedule-eod.sh install       # 6pm"
+echo ""
+echo "  Then open this folder in Cowork/Claude Code and say: daily"
+echo ""

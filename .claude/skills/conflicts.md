@@ -18,7 +18,7 @@ with both sides and a resolution prompt — so nothing gets silently buried.
 
 ### 1. Load all wiki pages
 
-Read every `.md` file in wiki/concepts/, wiki/people/, wiki/tools/.
+Read every `.md` file in wiki/concepts/, wiki/tools/.
 For each page, extract all factual claims — sentences that assert
 something is true, false, better, worse, causes, prevents, etc.
 
@@ -34,7 +34,6 @@ Focus on:
 Compare claims across pages. Flag as a conflict when:
 - Two pages make opposing factual claims about the same entity
 - One page says X leads to Y; another says X leads to not-Y
-- A person page attributes something differently from a concept page
 - A confidence: high page directly contradicts another confidence: high page
 
 Do NOT flag as conflicts:

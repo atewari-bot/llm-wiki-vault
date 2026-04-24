@@ -11,7 +11,7 @@ Synthesizes four sources into a single prioritised daily briefing saved to `repo
 
 **Sources:**
 1. **Google Calendar** — today's meetings via MCP
-2. **raw/inbox/ + raw/notes/** — unprocessed content count and preview
+2. **raw/notes/ + raw/todos/** — unprocessed content and planned todos
 3. **wiki/meta/graph-report.md** — open knowledge gaps
 4. **reports/** — yesterday's daily report for carry-forward items
 
@@ -22,12 +22,12 @@ Synthesizes four sources into a single prioritised daily briefing saved to `repo
 ### 1. Pull today's calendar
 Use Google Calendar MCP to fetch today's events.
 For each event, check wiki/ for relevant pages:
-- Search wiki/concepts/, wiki/people/, wiki/tools/ for pages matching event title keywords
+- Search wiki/concepts/, wiki/tools/ for pages matching event title keywords
 - List up to 3 relevant wiki pages per meeting as prep material
 
-### 2. Check inbox state
-Count unprocessed files in raw/inbox/ and raw/notes/.
-If > 0: add "process inbox/notes" as a must-do item.
+### 2. Check notes state
+Count unprocessed files in raw/notes/.
+If > 0: add "process notes" as a must-do item.
 
 ### 3. Read graph-report gaps
 Open wiki/meta/graph-report.md, extract top 3 open gaps.

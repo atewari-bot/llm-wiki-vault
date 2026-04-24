@@ -3,10 +3,11 @@
 # =============================================================
 
 # Secrets — never commit
-tools/.env
+.tools/.env
+.tools/token.json
 
-# Python virtual environment (tools/.venv/)
-tools/.venv/
+# Python virtual environment (.tools/.venv/)
+.tools/.venv/
 
 # Obsidian app settings (local workspace state)
 .obsidian/
@@ -16,16 +17,61 @@ tools/.venv/
 **/.DS_Store
 ._*
 
-# Slack digests — may contain sensitive messages; remove this
-# line if you want to track Slack history in git
-raw/slack/
-
 # Script logs
-tools/logs/
+.tools/logs/
+.tools/watch.log
+.tools/output/
+.tools/graph.json
 *.log
 
 # Claude Code local state
 .claude/settings.local.json
+
+# =============================================================
+# User data — skeleton folders and implementation are tracked,
+# the actual content inside them is not.
+# =============================================================
+
+# Raw captures (notes, todos) — user content
+/raw/notes/**
+!/raw/notes/.gitkeep
+!/raw/notes/.keep
+
+/raw/todos/**
+!/raw/todos/.gitkeep
+!/raw/todos/.keep
+
+# Compiled wiki pages — user knowledge base
+/wiki/concepts/**
+!/wiki/concepts/.gitkeep
+
+/wiki/tools/**
+!/wiki/tools/.gitkeep
+
+/wiki/meta/**
+!/wiki/meta/.gitkeep
+
+# Generated reports — rebuilt on demand by skills
+/reports/daily/**
+!/reports/daily/.keep
+
+/reports/weekly/**
+!/reports/weekly/.keep
+
+/reports/onepager/**
+!/reports/onepager/.keep
+
+/reports/slides/**
+!/reports/slides/.keep
+
+/reports/mindmap/**
+!/reports/mindmap/.keep
+
+/reports/discoveries/**
+!/reports/discoveries/.keep
+
+/reports/review/**
+!/reports/review/.keep
 
 # =============================================================
 # Python (auto-generated below)

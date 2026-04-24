@@ -29,11 +29,11 @@ Across all daily reports this week:
 
 ### 3. Summarise knowledge activity
 Scan wiki/ for pages with `updated: YYYY-MM-DD` matching this week.
-Group by type: concepts / people / tools.
+Group by type: concepts / tools.
 Count new pages created vs existing pages updated.
 
-Scan raw/articles/ and raw/notes/ for files created this week.
-Count: articles ingested, notes captured.
+Scan raw/notes/ for files created this week.
+Count: notes captured.
 
 ### 4. Read graph-report
 From wiki/meta/graph-report.md:
@@ -70,7 +70,6 @@ type: weekly-review
 - Persistent blockers: [items carried 3+ days]
 
 ## Knowledge activity
-- Articles ingested: N
 - Notes captured: N
 - Wiki pages created: N  updated: N
 - Most active area: [cluster name]

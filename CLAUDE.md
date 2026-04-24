@@ -1,554 +1,224 @@
-# CLAUDE.md
-
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
 # LLM Wiki — Claude Operating Rules
 
-You are a knowledge compilation agent operating inside this vault. Your job is to build, maintain, and query
-a persistent cross-referenced knowledge base, and help the user plan and review their work through daily
-intelligence features.
-
----
-
-## Setup & Environment
-
-**One-time setup:**
-```bash
-bash tools/setup.sh
-```
-This creates `tools/.venv` and installs: `anthropic`, `networkx`, `watchdog`, `python-dotenv`, `slack-sdk`.
-
-**Auth rules (critical):**
-- Claude Code uses your claude.ai login — no API key export needed
-- Python tools read `ANTHROPIC_API_KEY` from `tools/.env` only
-- **Do NOT** export `ANTHROPIC_API_KEY` in the same terminal you run `claude` — it causes auth conflicts
-
-**Running Python tools directly:** Use `tools/.venv/bin/python tools/<script>.py` or activate the venv first.
-
-## Python Tools Architecture
-
-The `tools/` scripts form two pipelines:
-
-**Knowledge graph pipeline** (`build-graph.sh` → `knowledge_graph_builder.py`):
-- `scripts/parsers.py` — parse raw markdown frontmatter and wikilinks
-- `scripts/enricher.py` — LLM enrichment calls
-- `scripts/graph_builder.py` — build NetworkX graph, write `wiki/meta/graph-report.md`
-- `scripts/exporters.py` — write wiki pages and index
-
-**Script flags:**
-```bash
-bash tools/build-graph.sh [--inbox-only] [--dry-run]
-bash tools/run-daily.sh   [--no-slack] [--no-calendar]
-bash tools/run-review.sh  [--auto] [--dry-run]
-bash tools/run-slack-ingest.sh [--hours N]
-```
-
----
+You are a knowledge compilation agent operating inside this vault. Your job is to build, maintain, and query a persistent cross-referenced knowledge base, and help the user plan and review their work through daily intelligence features.
 
 ## Vault Structure
 
 ```
-raw/     → source material (input only, never modify existing files)
-raw/todos/ → daily task lists (inline, written by Claude each day)
-wiki/    → compiled knowledge (you write here)
-reports/ → human-facing outputs you generate on request
-tools/   → automation (do not modify)
+raw/
+├── todos/
+│   └── YYYY-MM-DD.md        ← manually planned tasks for the day
+├── notes/
+│   └── YYYY-MM/
+│       └── YYYY-MM-DD-title.md  ← fleeting notes, EOD captures, ingested articles
+
+wiki/
+├── concepts/     ← synthesized ideas, projects, processes
+├── tools/        ← software, frameworks, workflows
+└── meta/
+    ├── index.md           ← live wiki dashboard
+    ├── graph-report.md    ← knowledge gaps
+    └── conflicts.md       ← contradiction tracker
+
+reports/
+├── daily/        ← YYYY-MM-DD.md
+├── weekly/       ← YYYY-WNN.md
+├── onepager/     ← <slug>.md
+├── slides/       ← <slug>.md
+├── mindmap/      ← <slug>.md
+├── discoveries/  ← YYYY-MM-DD.md
+└── review/       ← YYYY-MM-DD.md
+
+.tools/            ← automation (do not modify)
 ```
 
 ## Layer Rules
 
-| Layer       | Purpose                                     | Who writes          |
-|-------------|---------------------------------------------|---------------------|
-| raw/        | Source input — untouched after initial save | You (drop files in) |
-| raw/todos/  | Daily inline task lists                     | Claude              |
-| wiki/       | Compiled knowledge — synthesized, linked    | Claude              |
-| reports/    | Human-facing documents on request           | Claude              |
-| tools/      | Automation scripts and build artifacts      | Scripts only        |
-
----
+| Layer    | Purpose                                  | Who writes          |
+|----------|------------------------------------------|---------------------|
+| raw/     | Source input — untouched after initial save | You (drop files in) — except raw/todos/ which Claude writes to on `todo` commands |
+| wiki/    | Compiled knowledge — synthesized, linked | Claude              |
+| reports/ | Human-facing documents on request        | Claude              |
+| .tools/   | Automation scripts and build artifacts   | Scripts only        |
 
 ## Connected Services
 
-| Service          | Status    | Used by                                        |
-|------------------|-----------|------------------------------------------------|
-| Google Calendar  | Connected | daily — fetches today's events via MCP         |
-| Gmail            | Connected | ingest <url> — can ingest email threads        |
-| Slack            | Connected | refresh slack — fetches channels via MCP       |
+| Service          | Status    | Used by                                      |
+|------------------|-----------|----------------------------------------------|
+| Google Calendar  | Connected | `daily` — fetches today's events via MCP     |
+| Gmail            | Connected | `ingest <url>` — can ingest email threads    |
 
----
+## Environment Config (.tools/.env)
 
-## Environment Config (tools/.env)
-
-All Python tools load tools/.env automatically — no shell exports needed.
+All Python tools load `.tools/.env` automatically — no shell exports needed.
 
 ```
-ANTHROPIC_API_KEY=sk-ant-...      # for Python CLI tools (not Claude Code itself)
-SLACK_CHANNEL_IDS=CXXXXXXXXXX    # comma-separated Slack channel IDs
-SLACK_LOOKBACK_HOURS=24           # hours to look back on each Slack fetch
-SLACK_MY_USER_ID=U...             # your Slack member ID — boosts score on @mentions
-SLACK_BOT_TOKEN=                  # optional — only if workspace allows app installs
+ANTHROPIC_API_KEY=sk-ant-...        # for Python CLI tools (not Claude Code itself)
 ```
-
-Note: SLACK_BOT_TOKEN is NOT required if using Cowork/Claude to fetch Slack.
-Leave blank for corporate workspaces with app install restrictions.
-
----
 
 ## All Shorthand Triggers
 
-| User says                  | Action                                                              |
-|----------------------------|---------------------------------------------------------------------|
-| ingest <url>               | Fetch article → raw/articles/ → update wiki → update index         |
-| process inbox              | Drain raw/inbox/ — classify, route, wikify → update index          |
-| process notes              | Wikify raw/notes/ unprocessed files → update index                 |
-| process all                | process inbox + process notes                                       |
-| lint                       | Health check: broken links, orphans, stubs, gaps                   |
-| build graph                | Tell user: bash tools/build-graph.sh                               |
-| refresh slack              | Fetch Slack → raw/slack/YYYY-MM-DD/<channel>/digest.md + data.json |
-| ingest slack               | Alias for refresh slack                                             |
-| list slack channels        | Show all currently monitored Slack channels                        |
-| add slack channel <x>      | Add channel by ID or name to SLACK_CHANNEL_IDS in tools/.env       |
-| remove slack channel <x>   | Remove channel from SLACK_CHANNEL_IDS in tools/.env                |
-| search slack channels <q>  | Search workspace channels (requires bot token)                     |
-| daily                      | Refresh Slack → generate daily briefing → reports/daily/YYYY-MM-DD.md + raw/todos/YYYY-MM-DD.md |
-| todo <text>                | Append task to raw/todos/YYYY-MM-DD.md (under ### Inbox)           |
-| add todo <text>            | Same as todo <text>                                                |
-| show todos                 | Display today's raw/todos/YYYY-MM-DD.md with counts               |
-| complete todo <item>       | Mark matching task [x] in raw/todos/YYYY-MM-DD.md                 |
-| clear todos                | Mark all unchecked tasks [x] in today's file                      |
-| plan day                   | Interactive — add multiple tasks, then generate full briefing      |
-| eod                        | End-of-day capture → raw/notes/YYYY-MM/YYYY-MM-DD-eod.md          |
-| weekly                     | Weekly review with Slack stats → reports/weekly/YYYY-WNN.md        |
-| discover                   | Find non-obvious connections → reports/discoveries/YYYY-MM-DD.md  |
-| mindmap <topic>            | Mermaid mind map → reports/mindmap/<slug>.md                       |
-| conflicts                  | Scan contradictions → update wiki/meta/conflicts.md                |
-| review                     | Confidence decay audit → reports/review/YYYY-MM-DD.md             |
-| onepager <topic>           | Shareable doc → reports/onepager/<slug>.md                         |
-| slides <topic>             | Marp slide deck → reports/slides/<slug>.md                         |
-| report on <topic>          | Write document → reports/YYYY-MM-DD-<topic>.md                     |
+| User says              | Action                                                              |
+|------------------------|---------------------------------------------------------------------|
+| ingest <url>           | Fetch article → raw/notes/YYYY-MM/ → update wiki → update index    |
+| process notes          | Wikify unprocessed files in raw/notes/ → update index              |
+| lint                   | Health check: broken links, orphans, stubs, gaps                   |
+| build graph            | Tell user: bash .tools/build-graph.sh                               |
+| todo <text>            | Append task to today's raw/todos/YYYY-MM-DD.md                      |
+| add todo <text>        | Same as above                                                       |
+| show todos             | Print today's raw/todos/YYYY-MM-DD.md                               |
+| clear todos            | Mark all items in today's todo file as [x]                          |
+| plan day               | Interactive: add todos then generate daily briefing                 |
+| daily                  | Generate daily briefing → reports/daily/YYYY-MM-DD.md               |
+| eod                    | Interactive EOD: ask for captures → raw/notes/YYYY-MM/YYYY-MM-DD-eod.md |
+| weekly                 | Weekly review → reports/weekly/YYYY-WNN.md                          |
+| discover               | Find non-obvious connections → reports/discoveries/YYYY-MM-DD.md   |
+| mindmap <topic>        | Mermaid mind map → reports/mindmap/<slug>.md                       |
+| conflicts              | Scan contradictions → update wiki/meta/conflicts.md                |
+| review                 | Confidence decay audit → reports/review/YYYY-MM-DD.md              |
+| onepager <topic>       | Shareable doc → reports/onepager/<slug>.md                         |
+| slides <topic>         | Marp slide deck → reports/slides/<slug>.md                         |
+| report on <topic>      | Write document → reports/YYYY-MM-DD-<topic>.md                     |
 
 After EVERY operation that modifies wiki/, silently run smart-index update.
-Output only: `Index updated — N total wiki pages`
-
----
+Output only: 📊 Index updated — N total wiki pages
 
 ## Wiki Page Frontmatter (required on every wiki page)
 
 ```yaml
 ---
 title: "Concept Name"
-type: concept | person | tool | project | insight
+type: concept | tool | project | insight
 tags: [tag1, tag2]
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
-sources: ["[[raw/articles/filename]]"]
+sources: ["[[raw/notes/YYYY-MM/filename]]"]
 related: ["[[wiki/concepts/related]]"]
 confidence: high | medium | low
 ---
 ```
 
-- `high`   = multiple sources, cross-referenced, recently verified
-- `medium` = one or two sources, needs more input
-- `low`    = stub, early draft
+Confidence levels:
+- **high** = multiple sources, cross-referenced, recently verified
+- **medium** = one or two sources, needs more input
+- **low** = stub, early draft
 
 ## Type → Subfolder Routing
 
-- concept, project, question, insight, event, process, architecture → wiki/concepts/
-- person → wiki/people/
-- tool   → wiki/tools/
-
----
+- concept, project, question, insight, event, process, architecture → `wiki/concepts/`
+- tool → `wiki/tools/`
 
 ## Ingest URL — full steps
 
 1. Fetch article from URL, clean to markdown
-2. Save to raw/articles/YYYY-MM/YYYY-MM-DD-slug.md with frontmatter: title, author, source_url, fetched: YYYY-MM-DD, tags: [raw, article]
-3. Extract 5-15 key concepts, people, tools from the article
-4. For each: check if wiki page exists → create or enrich
-5. Wikilink aggressively — every concept, person, tool gets [[linked]]
-6. End every wiki page with ## See Also listing 3-5 related pages
-7. Silently update wiki/meta/index.md
-
-## Process Inbox — full steps
-
-1. List all .md files in raw/inbox/ (recursively)
-2. Classify each: article / note / idea / transcript / reference
-3. article, reference → move to raw/articles/YYYY-MM/; note, idea, transcript → move to raw/notes/YYYY-MM/
-4. For each file: extract concepts → create or update wiki pages
-5. Add processed: YYYY-MM-DD to each file's frontmatter
-6. Silently update index
+2. Determine month bucket: `raw/notes/YYYY-MM/`
+3. Save to `raw/notes/YYYY-MM/YYYY-MM-DD-slug.md` with frontmatter: title, author, source_url, fetched: YYYY-MM-DD, tags: [raw, article]
+4. Extract 5-15 key concepts and tools from the article
+5. For each: check if wiki page exists → create or enrich
+6. Wikilink aggressively — every concept and tool gets [[linked]]
+7. End every wiki page with `## See Also` listing 3-5 related pages
+8. Silently update wiki/meta/index.md
 
 ## Process Notes — full steps
 
-1. Find .md files in raw/notes/ (recursively) without "processed:" in frontmatter
+1. Find .md files recursively in raw/notes/ (all YYYY-MM/ subdirs) without "processed:" in frontmatter
 2. For each: extract concepts → create or update wiki pages
-3. Add processed: YYYY-MM-DD to frontmatter
+3. Add `processed: YYYY-MM-DD` to frontmatter
 4. Silently update index
 
 ## Lint Wiki — full steps
 
 Scan wiki/ and report:
-- BROKEN LINKS: [[links]] pointing to nonexistent pages
-- ORPHANS: pages with zero incoming wikilinks from other wiki pages
-- STUBS: confidence: low OR under 150 words
-- CONTRADICTIONS: pages making opposing claims about the same topic
-- GAPS: topics referenced 3+ times but no dedicated page exists
-- SUGGESTED: 3 research topics to fill top gaps
+- **BROKEN LINKS**: [[links]] pointing to nonexistent pages
+- **ORPHANS**: pages with zero incoming wikilinks from other wiki pages
+- **STUBS**: confidence: low OR under 150 words
+- **CONTRADICTIONS**: pages making opposing claims about the same topic
+- **GAPS**: topics referenced 3+ times but no dedicated page exists
+- **SUGGESTED**: 3 research topics to fill top gaps
 
----
+## Manual Todo Input
 
-## Refresh Slack — full steps
+### `todo <text>` / `add todo <text>`
+Append `- [ ] <text>` to `raw/todos/YYYY-MM-DD.md` (create with frontmatter if missing)
 
-1. Use the connected Slack MCP to read all channels in SLACK_CHANNEL_IDS
-2. Look back SLACK_LOOKBACK_HOURS (default 24h)
-3. Score each message for action-item relevance (see scoring table below)
-4. Write two files per channel to raw/slack/YYYY-MM-DD/<channel>/: digest.md (human-readable, processed: false) and data.json (structured for daily/weekly)
-5. Confirm: `Slack #<channel> — N messages, N action items → raw/slack/YYYY-MM-DD/<channel>/digest.md`
-6. Offer: say `daily` to include in today's briefing, or `process inbox` to wikify the digest
+### `show todos` / `clear todos`
+Read or mark-done all items in today's todo file
 
-Message scoring:
-
-| Signal | Score |
-|--------|-------|
-| Contains: please, follow up, action item, todo, deadline, need to, we should, can you, could you, by EOD/tomorrow | +2 |
-| @mentions SLACK_MY_USER_ID | +2 |
-| @mentions anyone | +1 |
-| Ends with question | +1 |
-| Under 4 words | -1 |
-
-Score >= 2 → surfaced as action item
-
-JSON sidecar structure:
-```json
-{
-  "channel_id": "CXXXXXXXXXX",
-  "channel_name": "general",
-  "message_count": N,
-  "action_items": [{"text":"...","sender":"Name","ts_human":"HH:MM UTC","score":3,"channel":"general"}],
-  "raw_messages": [{"text":"...","sender":"Name","ts_human":"HH:MM UTC"}]
-}
-```
-
-## Slack Channel Management — full steps
-
-Tool: tools/slack_channels.py (CLI) or bash tools/run-slack-channels.sh
-
-**list slack channels:** Run `python tools/slack_channels.py list` and show the output.
-
-**add slack channel <x>:**
-1. Run `python tools/slack_channels.py add <x>`
-2. Report result: added / already monitored / not found
-3. Remind user: run `refresh slack` or `daily` to pull messages from the new channel
-
-**remove slack channel <x>:**
-1. Run `python tools/slack_channels.py remove <x>`
-2. Confirm removal and updated channel list
-
-**search slack channels <q>:**
-1. Run `python tools/slack_channels.py search <q>`
-2. Present results table (ID, name, members, topic)
-3. Prompt: "Say 'add slack channel <ID>' to start monitoring one"
-
-Note: search requires SLACK_BOT_TOKEN in tools/.env. Without it, suggest finding the channel ID in Slack (right-click channel → View channel details).
-
-No bot token mode:
-- add requires a channel ID (e.g. CXXXXXXXXXX), not a name
-- list shows IDs only (no name resolution)
-- search not available — find IDs directly in Slack
-
----
-
-## Manual Todo Input — full steps
-
-`raw/todos/YYYY-MM-DD.md` is your daily planning input file. Drop tasks in before running `daily` and they appear at the top of the briefing under `## Planned` with a `Manual` badge — before auto-generated must/should/if-time items. Checked items `[x]` are ignored; only unchecked `[ ]` items are pulled.
-
-**`todo <text>` / `add todo <text>`:**
-1. Open (or create) `raw/todos/YYYY-MM-DD.md` using today's date
-2. Append `- [ ] <text>` under the `### Inbox` section
-3. Confirm: `Added: <text>`
-
-**`show todos`:**
-1. Read `raw/todos/YYYY-MM-DD.md`
-2. Print the file; show counts: N unchecked / N checked
-3. If file missing, show: "No todo file for today — say `todo <text>` to start one"
-
-**`complete todo <item>`:**
-1. Find first unchecked `- [ ]` line matching `<item>` (fuzzy/partial)
-2. Change `[ ]` to `[x]`
-3. Confirm: `Done: <text>`
-
-**`clear todos`:**
-1. Change all `- [ ]` to `- [x]` in today's file
-2. Confirm: `Cleared N tasks`
-
-**`plan day`:**
-1. Prompt: "What's on your plate today? Drop tasks one per line, blank line when done."
-2. Append each as `- [ ] <text>` under `### Inbox`
-3. Run the full `daily` briefing
+### `plan day`
+Interactive multi-todo input then generate briefing
 
 ## Daily Briefing — full steps
 
-Sources: Slack MCP + Google Calendar MCP + raw/todos/ + raw/inbox/ state + graph-report gaps + yesterday's daily report (carry-forward)
+Sources: Google Calendar MCP + raw/todos/ + graph-report gaps + yesterday carry-forward
 
-1. Refresh Slack first — run the Refresh Slack steps above to populate today's JSON sidecars
-2. Fetch today's calendar events via Google Calendar MCP
-3. For each event: search wiki/ for relevant pages (keyword match on title). List up to 3 relevant wiki pages per meeting as prep material
-4. Read today's Slack data from raw/slack/YYYY-MM-DD/*/data.json — collect all action_items
-5. Read manual todos from raw/todos/YYYY-MM-DD.md — collect all unchecked `- [ ]` items (score 3, must tier)
-6. Count unprocessed files recursively in raw/inbox/ and raw/notes/
-7. Read top 3 gaps from wiki/meta/graph-report.md
-8. Read yesterday's reports/daily/YYYY-MM-DD.md. Extract all unchecked "- [ ]" items as carry-forward. Label each with days carried: (carried N days). Flag items carried 5+ days: (carried N days — consider dropping)
-9. Score todos (see table below)
-10. Rank into: Planned (manual, always first) / Must do / Should do / If time
-11. Save to reports/daily/YYYY-MM-DD.md
-12. Run: `bash tools/run-daily.sh` for script mode (reads cached sidecars if no bot token)
+1. Fetch calendar events via Google Calendar MCP
+2. Keyword-match event titles against wiki pages (up to 3 matches per meeting)
+3. Count unprocessed files in raw/notes/
+4. Read top 3 gaps from wiki/meta/graph-report.md
+5. Read yesterday's report → extract unchecked `- [ ]` as carry-forward (label with days)
+6. Score and rank todos → Must do / Should do / If time
+7. Save to `reports/daily/YYYY-MM-DD.md`
 
-Todo scoring:
-
-| Signal | Score |
-|--------|-------|
-| Tied to meeting today | +3 |
-| Carried 3+ days | +2 |
-| Slack action item (score 3+) | +2 |
-| Slack action item (score 2) | +1 |
-| Fills wiki gap | +1 |
-| Inbox > 5 files | +1 |
-
-Daily report format:
+### Daily report format:
 ```markdown
 ---
 title: "Daily Briefing — WEEKDAY MONTH DAY"
 date: YYYY-MM-DD
 type: daily-briefing
 ---
+
 # Daily Briefing — WEEKDAY MONTH DAY
-> [focus line: one sentence synthesis]
+
+> [focus line]
+
 ## Calendar
-- HH:MM — Event (duration) → Wiki: [[Page]], [[Page]] → Prep: [suggestion]
+- HH:MM — Event → Wiki: [[Page]] → Prep: review linked pages
+
 ## Todo
+
 ### Planned
-- [ ] [manual item] `Manual`
+- [ ] manually planned task
+
 ### Must do
-- [ ] [item] — *rationale*
-### Should do
-- [ ] [item]
-### If time
-- [ ] [item]
-### Carry-forward
-- [ ] [item] *(carried N days)*
-## From Slack
-- [ ] #channel — [message text] *(via Sender Name)*
+- [ ] item — *rationale*
+
+### Should do / If time / Carry-forward
+...
+
 ## Knowledge pulse
 - [[Page]] — updated YYYY-MM-DD
+
 ## Open knowledge gaps
-- [gap] → ingest <url> to fill
+- gap → ingest <url> to fill
 ```
-
-Omit "## From Slack" section if no Slack action items were found today.
-
-## Inline Todo File — raw/todos/YYYY-MM-DD.md
-
-Written automatically by `daily` and editable directly in Obsidian. Carry-forward pulls unchecked items from yesterday's file.
-
-```markdown
----
-title: "Todos — YYYY-MM-DD"
-date: YYYY-MM-DD
-type: todo
----
-# Todos — WEEKDAY MONTH DAY
-
-### Must do
-- [ ] [item] — *rationale*
-
-### Should do
-- [ ] [item]
-
-### If time
-- [ ] [item]
-
-### Carry-forward
-- [ ] [item] *(carried N days)*
-
-### Inbox
-<!-- ad-hoc items added via `add todo <item>` land here -->
-```
-
-**Todo trigger steps:**
-- `todo` → read raw/todos/YYYY-MM-DD.md and display; if missing, create empty scaffold above
-- `add todo <item>` → append `- [ ] <item>` under `### Inbox` in today's file; confirm added
-- `complete todo <item>` → find first unchecked line matching <item> (fuzzy), change `[ ]` to `[x]`; confirm
 
 ## EOD Capture — full steps
 
-1. Read today's reports/daily/YYYY-MM-DD.md
-2. Find all checked [x] and unchecked [ ] items
-3. Ask user: "Anything to capture from today? Drop 1-3 quick bullets."
-4. Count unprocessed files in raw/inbox/
-5. Save to raw/notes/YYYY-MM/YYYY-MM-DD-eod.md (create YYYY-MM/ subdir if needed)
-
-```markdown
----
-title: "EOD Note — YYYY-MM-DD"
-date: YYYY-MM-DD
-type: eod
-processed: false
----
-# EOD — WEEKDAY MONTH DAY
-## Completed today
-[checked-off items]
-## Carry forward
-[unchecked items]
-## Quick captures
-[user's bullets]
-## Inbox state
-[N unprocessed / inbox clear]
-```
+Interactive (`eod` trigger): ask for bullets, save `raw/notes/YYYY-MM/YYYY-MM-DD-eod.md`
+Headless (6pm schedule): read daily report → extract completed/pending → save automatically
 
 ## Weekly Review — full steps
 
-1. Find all reports/daily/YYYY-MM-DD.md from this week (Mon-today)
-2. Count total todos, completed [x], incomplete [ ]
-3. Calculate completion rate, find items appearing incomplete 2+ days (blockers)
-4. Scan wiki/ for pages with updated: this week → count new vs updated
-5. Count files recursively in raw/articles/YYYY-MM/ and raw/notes/YYYY-MM/ created this week
-6. Read graph-report.md gaps: which were filled (new pages match gap names)?
-7. Aggregate Slack stats from raw/slack/YYYY-MM-DD/*/data.json sidecars this week: channels monitored, messages scanned, action items surfaced, still unresolved
-8. Save to reports/weekly/YYYY-WNN.md with: one-line week synthesis, completion rate bar (■■■■■■■■░░ 67%), persistent blockers, knowledge activity counts, Slack activity section, gaps filled vs still open, next week focus (3 suggested todos), all incomplete items carrying forward
+1. Aggregate all daily reports Mon-today
+2. Completion rate with progress bar: `████░░░░░░ 67%`
+3. Blockers (incomplete 2+ days), wiki activity, notes count, gaps filled
+4. Save to `reports/weekly/YYYY-WNN.md`
 
 ## Smart Index — full steps (silent, after every wiki write)
 
-Scan wiki/ and rewrite wiki/meta/index.md with:
-- Domain table: cluster name | MOC link | page count | last updated
-- Type counts: concepts N / people N / tools N
-- Recently updated: last 7 pages with dates
-- Open gaps: top 3 from graph-report.md
-- Trending: top 3 most-linked pages (count incoming [[links]])
+Scan wiki/ → rewrite wiki/meta/index.md with domain table, type counts, recently updated, gaps, trending
+Output only: 📊 Index updated — N total wiki pages
 
-Output only: `Index updated — N total wiki pages`
+## Discover, Mindmap, Conflicts, Review, Onepager, Slides
 
-## Discover — full steps
-
-Read all wiki pages. Find and save to reports/discoveries/YYYY-MM-DD.md:
-
-BRIDGE CONNECTIONS (unlinked pairs that should be linked):
-- Pairs sharing 2+ meaningful tags but no wikilink between them
-- Pairs co-cited from same third page but not linked to each other
-- Pairs with high vocabulary overlap in body text
-- For each: state reason, suggest relationship type, give exact action
-
-MISSING PERSON PAGES:
-- Scan concept pages for capitalized proper noun pairs (likely names)
-- If name appears 3+ times across pages but has no wiki/people/ page → flag
-
-IMPLICIT SEQUENCES:
-- Find A→B→C chains where A links to B, B links to C, but A doesn't link to C
-
-ONE SURPRISING OBSERVATION:
-- Most-linked page undersized relative to hub status
-- OR cluster with zero external links (island)
-- OR high-confidence orphan page
-
-Or run: `bash tools/run-discover.sh`
-
-## Mindmap — full steps
-
-1. Search wiki/ for pages related to <topic> (name match, tag match, link proximity)
-2. Build Mermaid mindmap: root = topic, branches = direct wikilinks, sub-branches = linked pages in scope
-3. Max 25 nodes, max 4 words per label, no special characters in labels
-4. Save to reports/mindmap/<slug>.md with: Mermaid code block, wiki pages list, ingest candidates
-5. Tell user: open in Obsidian to render natively
-
-## Conflicts — full steps
-
-1. Load all wiki pages, extract factual claims
-2. Find pairs making opposing claims about same entity or topic
-3. Skip: nuanced perspectives, temporal differences, already-tracked items
-4. For each new conflict, show both sides with 5 resolution options: 1=contested 2=A correct 3=B correct 4=merge 5=skip
-5. Apply resolution: Contested → add `> [!warning]` to both; One correct → update incorrect page; Merge → create nuanced page
-6. Update wiki/meta/conflicts.md with status
-
-```markdown
-## [Short title] — YYYY-MM-DD
-Status: unresolved | contested | resolved
-Pages: [[A]], [[B]]
-Claim A: [paraphrase]
-Claim B: [paraphrase]
-Resolution: [decision or "pending"]
-```
-
-## Review (Confidence Decay) — full steps
-
-Decay rules:
-- confidence: high + not updated in 90+ days → auto-downgrade to medium. Add `> [!warning] Confidence downgraded — not updated in N days. Re-verify.` Update frontmatter: confidence: medium, updated: today
-- confidence: medium + not updated in 180+ days → flag as stale
-- confidence: low + (30+ days old OR < 150 words) → flag as abandoned stub
-
-1. Scan all wiki pages, read confidence + updated + created from frontmatter
-2. Apply decay rules, categorize: downgrades / stale / stubs
-3. Auto-apply all downgrades (no prompt)
-4. For stale + stubs: prompt user → keep (extend window) / delete / defer
-5. Save to reports/review/YYYY-MM-DD.md
-
-Or run: `bash tools/run-review.sh [--auto] [--dry-run]`
-
-## Onepager — full steps
-
-1. Search wiki/ for up to 10 pages related to <topic>
-2. Synthesize: definition, why it matters, how it works (3-5 steps), key people/tools, tradeoffs, further reading
-3. Save to reports/onepager/<slug>.md
-
-Rules:
-- NO wikilinks [[like this]] anywhere in the output
-- NO internal vault references
-- Plain language — assume zero prior context
-- Max 600 words total
-- Format: What it is / Why it matters / How it works / Key people & tools / Tradeoffs table / Further reading
-- If no wiki pages found: tell user to ingest first
-
-## Slides — full steps
-
-1. Search wiki/ for up to 15 pages related to <topic>, group by cluster
-2. Plan 8-12 slides: title / agenda / one per concept or cluster / key takeaways / further reading
-3. Save to reports/slides/<slug>.md
-
-Rules:
-- marp: true in frontmatter
-- Max 3 bullets per slide, max 8 words per bullet
-- One > blockquote key insight per slide
-- No wikilinks in output
-- Max 12 slides total
-
-Rendering instructions after saving:
-```bash
-npm install -g @marp-team/marp-cli   # one time
-marp reports/slides/<slug>.md         # preview in browser
-marp reports/slides/<slug>.md --pdf   # export PDF
-marp reports/slides/<slug>.md --pptx  # export PowerPoint
-```
-
-## Answer Questions
-
-1. Read wiki/meta/index.md to orient
-2. Find 3-5 most relevant wiki pages
-3. Read those pages fully
-4. Synthesize answer — cite wiki page names, not raw sources
-5. Note if wiki gaps limit the answer, suggest ingest
-
-## Write Reports
-
-Save to reports/YYYY-MM-DD-topic.md with clear frontmatter. Tell user the file path after saving.
+See HELP.md for full step-by-step specifications. These all read wiki pages and produce reports.
 
 ## Writing Style for Wiki Pages
 
-- Bold the first definition of a key term
-- `> [!note]` for important caveats
-- `> [!warning]` for contradictions or contested claims
-- End every page with ## See Also (3-5 links)
-- Split pages over ~600 words into sub-concepts
-- Always include ## Relationships with typed wikilinks
-
-Relationship types: relates_to, depends_on, contradicts, supports, part_of, leads_to, created_by, used_in, contrasts_with
+- **Bold** the first definition of a key term
+- `> [!note]` for caveats, `> [!warning]` for contradictions
+- End every page with `## See Also` (3-5 links) and `## Relationships` with typed wikilinks
+- Relationship types: relates_to, depends_on, contradicts, supports, part_of, leads_to, used_in, contrasts_with
 
 ## What You Must Never Do
 
@@ -558,24 +228,3 @@ Relationship types: relates_to, depends_on, contradicts, supports, part_of, lead
 - Leave broken wikilinks after an ingest
 - Answer from memory alone when question is about vault content
 - Use wikilinks in onepager or slides output
-
----
-
-## Keeping BUILD_PROMPT.md Current
-
-Update BUILD_PROMPT.md after ANY of:
-- New skill, trigger, or feature added
-- Python tool or shell script created or significantly changed
-- Design decision changed (layer rules, routing, formats, thresholds)
-- Bug fix changes how a core operation works
-
-How to update:
-  1. Find the relevant SECTION in BUILD_PROMPT.md and edit it
-  2. Replace ALL real secrets/IDs with dummies:
-     - API keys → sk-ant-REPLACE_WITH_YOUR_KEY
-     - Slack tokens → xoxb-REPLACE_WITH_TOKEN
-     - Channel IDs → REPLACE_WITH_CHANNEL_ID
-     - User IDs → REPLACE_WITH_YOUR_ID
-  3. Confirm to user: BUILD_PROMPT.md updated — [what changed]
-
-Never put real credentials in BUILD_PROMPT.md.

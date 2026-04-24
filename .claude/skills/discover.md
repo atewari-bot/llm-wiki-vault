@@ -15,7 +15,6 @@ pages that share underlying structure but live in separate clusters.
 This is the most creative operation — it looks for:
 - **Structural parallels** — two concepts that solve the same problem differently
 - **Hidden contradictions** — pages that imply conflicting things without flagging it
-- **Missing bridges** — a person frequently cited in concept pages who has no person page
 - **Cluster leakage** — a concept that belongs in two clusters but only sits in one
 - **Implicit sequences** — concepts that logically follow each other but aren't linked
 
@@ -25,7 +24,7 @@ This is the most creative operation — it looks for:
 
 ### 1. Load the full wiki graph
 
-Read all pages in wiki/concepts/, wiki/people/, wiki/tools/.
+Read all pages in wiki/concepts/, wiki/tools/.
 For each page, extract:
 - Title, description, tags, confidence
 - All outgoing `[[wikilinks]]`
@@ -40,25 +39,19 @@ Identify pairs of wiki pages that:
 - Are both linked FROM the same third page but not to each other
 - Live in different clusters but use overlapping vocabulary
 
-### 3. Check for implicit people
-
-Scan all concept pages for mentions of names (proper nouns that aren't
-already wikilinked). If a name appears in 3+ pages without a [[person page]],
-flag it as a missing person page.
-
-### 4. Look for structural parallels
+### 3. Look for structural parallels
 
 Find concept pairs where:
 - Both describe a system that has an "input → process → output" structure
 - Both address the same failure mode (maintenance cost, scale limits, etc.)
-- Both were created by the same person or school of thought
+- Both originate from the same school of thought
 
-### 5. Identify implicit sequences
+### 4. Identify implicit sequences
 
 Find triplets of concepts where A leads to B and B leads to C,
 but A doesn't directly link to C — surfacing the full chain.
 
-### 6. Write discoveries report
+### 5. Write discoveries report
 
 Save to `reports/YYYY-MM-DD-discoveries.md`:
 
@@ -81,14 +74,6 @@ wiki_pages_scanned: N
 
 [repeat for each bridge, max 3]
 
-## Missing pages
-
-### [[Person Name]] has no wiki page
-Referenced in: [[Page 1]], [[Page 2]], [[Page 3]]
-**Action:** `ingest` an article about them, or create a stub page.
-
-[repeat for missing pages, max 2]
-
 ## Implicit sequences
 
 ### [[A]] → [[B]] → [[C]] (but A doesn't link to C)
@@ -102,12 +87,11 @@ Referenced in: [[Page 1]], [[Page 2]], [[Page 3]]
 a pattern, an anomaly, a question the wiki raises but doesn't answer]
 ```
 
-### 7. Confirm
+### 6. Confirm
 
 ```
 🔍 Discoveries → reports/YYYY-MM-DD-discoveries.md
   Bridge connections: N
-  Missing pages: N
   Implicit sequences: N
 ```
 

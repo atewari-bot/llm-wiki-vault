@@ -17,7 +17,7 @@ A lightweight evening capture that:
 ## Steps
 
 ### 1. Read today's daily report
-Open `reports/YYYY-MM-DD-daily.md` (today's date).
+Open `reports/daily/YYYY-MM-DD.md` (today's date).
 Find all `- [ ]` (incomplete) and `- [x]` (complete) items.
 
 If no daily report exists, skip to step 3.
@@ -38,13 +38,13 @@ Wait for response. If user says "nothing" or "no", skip to step 4.
 
 Take the user's bullets and format them as a clean note.
 
-### 4. Check inbox state
-Count files in raw/inbox/ that are still unprocessed.
-If > 0: suggest running `process inbox` before closing out.
+### 4. Check notes state
+Count files in raw/notes/ that are still unprocessed.
+If > 0: suggest running `process notes` before closing out.
 
 ### 5. Write EOD note
 
-Save to `raw/notes/YYYY-MM-DD-eod.md`:
+Save to `raw/notes/YYYY-MM/YYYY-MM-DD-eod.md`:
 
 ```markdown
 ---
@@ -65,16 +65,16 @@ processed: false
 ## Quick captures
 [user's bullets, cleaned up]
 
-## Inbox state
-[N unprocessed files remaining / inbox clear]
+## Notes state
+[N unprocessed files remaining / notes clear]
 ```
 
 ### 6. Confirm
 
 Tell the user:
 ```
-🌙 EOD note saved → raw/notes/YYYY-MM-DD-eod.md
+🌙 EOD note saved → raw/notes/YYYY-MM/YYYY-MM-DD-eod.md
   ✅ Completed: N  ⏳ Carrying forward: N
-  [inbox status]
+  [notes status]
   Tomorrow's /daily will pick this up automatically.
 ```

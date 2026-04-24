@@ -36,7 +36,7 @@ the claim, or updating the content from your own knowledge.
 
 ### 1. Scan all wiki pages
 
-For each page in wiki/concepts/, wiki/people/, wiki/tools/:
+For each page in wiki/concepts/, wiki/tools/:
 - Read `confidence:`, `updated:`, `created:`, `sources:` from frontmatter
 - Calculate days since last update
 - Check if any source wikilinks point to raw/ files that are themselves old
@@ -63,7 +63,7 @@ Present a prioritised list:
 
 🔴 Downgrade to medium (high → medium, 90+ days old)
   1. [[Concept A]] — last updated 143 days ago
-  2. [[Person B]] — last updated 97 days ago
+  2. [[Concept B]] — last updated 97 days ago
 
 🟡 Stale — verify or update (medium, 180+ days)
   3. [[Tool C]] — last updated 201 days ago

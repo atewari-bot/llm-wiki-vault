@@ -18,7 +18,6 @@ Claude runs this silently at the end of every operation that modifies wiki/.
 
 Count pages per subfolder:
 - wiki/concepts/ — count .md files (exclude .gitkeep)
-- wiki/people/   — count .md files
 - wiki/tools/    — count .md files
 - wiki/meta/     — count .md files (excluding index.md itself)
 
@@ -64,7 +63,6 @@ updated: YYYY-MM-DD
 | Type | Count |
 |------|-------|
 | Concepts | N |
-| People | N |
 | Tools | N |
 
 ## Recently updated
@@ -81,7 +79,7 @@ updated: YYYY-MM-DD
 
 ## Quick navigation
 - [[graph-report]] — knowledge gaps and summary
-- Raw sources: `raw/articles/` · `raw/notes/` · `raw/inbox/`
+- Raw sources: `raw/notes/` · `raw/todos/`
 - Reports: `reports/`
 ```
 

@@ -16,7 +16,7 @@ Saves to: reports/onepager/<slug>.md
 
 ## Steps
 
-1. Search wiki/concepts/, wiki/people/, wiki/tools/ for up to 10 pages related to <topic>
+1. Search wiki/concepts/, wiki/tools/ for up to 10 pages related to <topic>
    (direct name match, tag match, or wikilink proximity)
 
 2. If no wiki pages found: tell user to ingest first before generating a onepager
@@ -25,7 +25,7 @@ Saves to: reports/onepager/<slug>.md
    - Core definition (what is this, in plain language?)
    - Why it matters (what problem does it solve?)
    - How it works (3-5 numbered steps or principles)
-   - Key people and tools (names + one-line descriptions)
+   - Key tools (names + one-line descriptions)
    - Tradeoffs (strengths vs limitations table)
    - Further reading (real URLs from wiki page source frontmatter only)
 
@@ -48,7 +48,7 @@ wiki_pages_used: N
 1. [step]
 2. [step]
 3. [step]
-## Key people & tools
+## Key tools
 - Name — one line description
 ## Tradeoffs
 | Strength | Limitation |
