@@ -1,0 +1,39 @@
+<?xml version='1.0' encoding='utf-8'?>
+<board>
+  <widget type="sticker" id="e1" x="50" y="50" width="220" height="120" style="backgroundColor:#4ECDC4;" text="&lt;b&gt;Docker&lt;/b&gt;" />
+  <widget type="sticker" id="e2" x="300" y="50" width="220" height="120" style="backgroundColor:#FFD700;" text="&lt;b&gt;Dockerfile&lt;/b&gt;" />
+  <widget type="sticker" id="e3" x="550" y="50" width="220" height="120" style="backgroundColor:#FFD700;" text="&lt;b&gt;Docker Image&lt;/b&gt;" />
+  <widget type="sticker" id="e4" x="800" y="50" width="220" height="120" style="backgroundColor:#FFD700;" text="&lt;b&gt;Docker Container&lt;/b&gt;" />
+  <widget type="sticker" id="e5" x="1050" y="50" width="220" height="120" style="backgroundColor:#4ECDC4;" text="&lt;b&gt;Alpine Linux&lt;/b&gt;" />
+  <widget type="sticker" id="e6" x="1300" y="50" width="220" height="120" style="backgroundColor:#4ECDC4;" text="&lt;b&gt;Redis&lt;/b&gt;" />
+  <widget type="sticker" id="e7" x="50" y="230" width="220" height="120" style="backgroundColor:#4ECDC4;" text="&lt;b&gt;BuildKit&lt;/b&gt;" />
+  <widget type="sticker" id="e8" x="300" y="230" width="220" height="120" style="backgroundColor:#A8E6CF;" text="&lt;b&gt;Docker Build Process&lt;/b&gt;" />
+  <widget type="sticker" id="e9" x="550" y="230" width="220" height="120" style="backgroundColor:#FFD700;" text="&lt;b&gt;Image Tagging&lt;/b&gt;" />
+  <widget type="sticker" id="e10" x="800" y="230" width="220" height="120" style="backgroundColor:#FFD700;" text="&lt;b&gt;FROM Instruction&lt;/b&gt;" />
+  <widget type="sticker" id="e11" x="1050" y="230" width="220" height="120" style="backgroundColor:#FFD700;" text="&lt;b&gt;RUN Instruction&lt;/b&gt;" />
+  <widget type="sticker" id="e12" x="1300" y="230" width="220" height="120" style="backgroundColor:#FFD700;" text="&lt;b&gt;CMD Instruction&lt;/b&gt;" />
+  <widget type="sticker" id="e13" x="50" y="410" width="220" height="120" style="backgroundColor:#4ECDC4;" text="&lt;b&gt;APK Package Manager&lt;/b&gt;" />
+  <widget type="sticker" id="e14" x="300" y="410" width="220" height="120" style="backgroundColor:#4ECDC4;" text="&lt;b&gt;Docker CLI Commands&lt;/b&gt;" />
+  <widget type="sticker" id="e15" x="550" y="410" width="220" height="120" style="backgroundColor:#FFD700;" text="&lt;b&gt;Filesystem Snapshot&lt;/b&gt;" />
+  <widget type="sticker" id="e16" x="800" y="410" width="220" height="120" style="backgroundColor:#A8E6CF;" text="&lt;b&gt;Container Lifecycle&lt;/b&gt;" />
+  <widget type="sticker" id="e17" x="1050" y="410" width="220" height="120" style="backgroundColor:#B4A0FF;" text="&lt;b&gt;Docker System Architecture&lt;/b&gt;" />
+  <widget type="sticker" id="e18" x="1300" y="410" width="220" height="120" style="backgroundColor:#FFD700;" text="&lt;b&gt;Image Layering&lt;/b&gt;" />
+  <widget type="sticker" id="e19" x="50" y="590" width="220" height="120" style="backgroundColor:#95E1D3;" text="&lt;b&gt;Operating System Analogy&lt;/b&gt;" />
+  <widget type="line" startWidgetId="e1" endWidgetId="e8" text="executes" />
+  <widget type="line" startWidgetId="e2" endWidgetId="e3" text="creates" />
+  <widget type="line" startWidgetId="e3" endWidgetId="e4" text="creates" />
+  <widget type="line" startWidgetId="e5" endWidgetId="e19" text="supports" />
+  <widget type="line" startWidgetId="e6" endWidgetId="e19" text="supports" />
+  <widget type="line" startWidgetId="e7" endWidgetId="e8" text="optimizes" />
+  <widget type="line" startWidgetId="e8" endWidgetId="e15" text="creates" />
+  <widget type="line" startWidgetId="e9" endWidgetId="e3" text="organizes" />
+  <widget type="line" startWidgetId="e10" endWidgetId="e5" text="specifies" />
+  <widget type="line" startWidgetId="e10" endWidgetId="e11" text="precedes" />
+  <widget type="line" startWidgetId="e11" endWidgetId="e13" text="uses" />
+  <widget type="line" startWidgetId="e11" endWidgetId="e12" text="precedes" />
+  <widget type="line" startWidgetId="e12" endWidgetId="e6" text="launches" />
+  <widget type="line" startWidgetId="e14" endWidgetId="e16" text="controls" />
+  <widget type="line" startWidgetId="e15" endWidgetId="e18" text="part_of" />
+  <widget type="line" startWidgetId="e17" endWidgetId="e1" text="describes" />
+  <widget type="line" startWidgetId="e19" endWidgetId="e2" text="explains" />
+</board>

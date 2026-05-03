@@ -61,6 +61,7 @@ ANTHROPIC_API_KEY=sk-ant-...        # for Python CLI tools (not Claude Code itse
 | User says              | Action                                                              |
 |------------------------|---------------------------------------------------------------------|
 | ingest <url>           | Fetch article → raw/notes/YYYY-MM/ → update wiki → update index    |
+| ingest drawio <path>   | Parse draw.io XML → raw/notes/<topic>/diagrams/ + companion note + wiki pages |
 | process notes          | Wikify unprocessed files in raw/notes/ → update index              |
 | lint                   | Health check: broken links, orphans, stubs, gaps                   |
 | build graph            | Tell user: bash .tools/build-graph.sh                               |
@@ -118,6 +119,49 @@ Confidence levels:
 6. Wikilink aggressively — every concept and tool gets [[linked]]
 7. End every wiki page with `## See Also` listing 3-5 related pages
 8. Silently update wiki/meta/index.md
+
+## Ingest draw.io XML — full steps
+
+Trigger: `ingest drawio <path>` where `<path>` points to a `.drawio` or `.xml` export.
+
+**Run a single command.** The whole pipeline is one Python tool:
+
+```bash
+python .tools/ingest_drawio.py <path-to-diagram.drawio> [--topic <slug>]
+```
+
+The tool does all of the following in order:
+
+1. Validates the file is draw.io XML
+2. Resolves a `<topic>` slug from the `<mxfile>` `name=`, the filename stem, or `--topic`
+3. Stages the source as `raw/notes/<topic>/diagrams/<YYYY-MM-DD>-<slug>.drawio.xml`
+4. Parses every `<diagram>` page individually and gathers context: existing wiki pages + adjacent notes in `raw/notes/<topic>/`
+5. Makes a SINGLE Claude call that produces (a) a substantive companion-note body and (b) a short, gated list of wiki-page actions
+6. Writes the companion note at `raw/notes/<topic>/<YYYY-MM-DD>-<slug>-diagram.md` with frontmatter, the AI prose body, a Mermaid translation of the diagram, and the raw XML in a collapsed `<details>` block
+7. Applies wiki actions: `create` for new substantive pages, `enrich` (append a "Seen in" section) for existing pages, `skip` for everything else
+8. Reports counts and file paths
+
+**The core invariant:** one `.xml` file = one substantive companion note. Wiki pages are a SELECTIVE output, not a per-node fanout.
+
+### What the tool will and will not do
+
+✅ The companion note is **the** deliverable: real prose organized as a walkthrough of what the diagram models, with **bold** terms for entities that don't merit their own page and `[[wikilinks]]` only for entities that do.
+
+✅ Wiki pages are created only when the entity passes the wiki-worthiness bar: a proper reusable concept name (not a verb phrase, not a sentence, not a one-off example), AND ≥250 words of substantive content.
+
+✅ Existing wiki pages get **enriched** with a `## Seen in: <Diagram>` section containing CONCRETE additions the diagram contributes — not a generic `relates_to` list.
+
+❌ No fanout into one-page-per-node. ❌ No `## Nodes` / `## Edges` bullet lists in the companion note. ❌ No `(MOC)` cluster pages. ❌ No `node_id` / `cluster: "None"` frontmatter fields on wiki pages. ❌ No wikilinks to pages that don't exist.
+
+### When to ask vs. proceed
+
+If the user says `ingest drawio <path>` with no other context, just run the tool. Only ask a clarifying question if the topic slug can't be inferred and the filename is generic (e.g. `untitled.drawio`).
+
+### Inspect first with --dry-run
+
+`python .tools/ingest_drawio.py <path> --dry-run` parses the XML, gathers context, and prints the prompt that *would* be sent to Claude — without making the API call or writing files. Use this to sanity-check on big diagrams before spending tokens.
+
+> [!note] Multi-page mxfiles produce **one** companion note that walks through all pages in prose, not one note per page. The Mermaid block in the companion note covers the full graph; per-page subsections are handled by the prose's `## Walkthrough` structure.
 
 ## Process Notes — full steps
 
@@ -228,3 +272,5 @@ See HELP.md for full step-by-step specifications. These all read wiki pages and 
 - Leave broken wikilinks after an ingest
 - Answer from memory alone when question is about vault content
 - Use wikilinks in onepager or slides output
+- **Fan out a single diagram into many thin wiki pages.** The companion note is the deliverable; wiki pages are gated on real, reusable content (≥250 words, not a relabeled definition).
+- **Run `knowledge_graph_builder.py --drawio` for diagram ingest.** That path produces stub-page fanout. Use `ingest_drawio.py` instead. (`knowledge_graph_builder.py` is still the right tool for the whole-vault graph build.)

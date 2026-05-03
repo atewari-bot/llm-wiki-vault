@@ -25,6 +25,7 @@ cd llm-wiki-vault && claude                # start Claude Code
 | Say | Action |
 |-----|--------|
 | `ingest <url>` | Fetch article → wiki |
+| `ingest drawio <path>` | One .xml → one substantive companion note + selective wiki pages (gated, no fanout) |
 | `process notes` | Wikify raw/notes/ |
 | `lint` | Wiki health check |
 | `build graph` | Run `bash .tools/build-graph.sh` |
@@ -44,6 +45,9 @@ cd llm-wiki-vault && claude                # start Claude Code
 
 ## Bash scripts
 ```bash
+python .tools/ingest_drawio.py <file.drawio>           # ingest a draw.io diagram
+python .tools/ingest_drawio.py <file.drawio> --dry-run # preview prompt only, no API call
+python .tools/ingest_drawio.py <file.drawio> --topic auth-flow --slug v2  # explicit names
 bash .tools/build-graph.sh              # all of raw/ → wiki/
 bash .tools/build-graph.sh --dry-run    # preview
 bash .tools/run-daily.sh                # daily briefing (headless)
@@ -65,6 +69,7 @@ bash .tools/schedule-eod.sh install        # 6pm
 | What | Where |
 |------|-------|
 | Fleeting notes / articles / EOD | raw/notes/YYYY-MM/ |
+| draw.io diagrams (XML + companion note) | raw/notes/<topic>/diagrams/ + raw/notes/<topic>/<date>-<slug>-diagram.md |
 | Manual todos | raw/todos/YYYY-MM-DD.md |
 | Wiki pages | wiki/concepts/ tools/ |
 | Daily briefings | reports/daily/YYYY-MM-DD.md |
